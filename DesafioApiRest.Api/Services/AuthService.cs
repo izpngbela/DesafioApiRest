@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using DesafioApiRest.Api.Dtos;
+using DesafioApiRest.Api.Dtos.Request;
 using DesafioApiRest.Api.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 

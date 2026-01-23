@@ -1,4 +1,4 @@
-using DesafioApiRest.Api.Dtos;
+using DesafioApiRest.Api.Dtos.Response;
 
 namespace DesafioApiRest.Api.Interfaces;
 

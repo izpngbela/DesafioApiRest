@@ -1,6 +1,7 @@
 using DesafioApiRest.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DesafioApiRest.Api.Dtos.Response;
 
 namespace DesafioApiRest.Api.Controllers;
 

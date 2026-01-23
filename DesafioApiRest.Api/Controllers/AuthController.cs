@@ -1,4 +1,5 @@
-using DesafioApiRest.Api.Dtos;
+
+using DesafioApiRest.Api.Dtos.Request;
 using DesafioApiRest.Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
