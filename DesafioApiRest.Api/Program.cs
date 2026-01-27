@@ -8,7 +8,15 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. Configuração de Autenticação JWT ---
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "chave_super_secreta_para_teste_local_256bits");
+// Obtém as configurações JWT - lança exceção se não configuradas
+var jwtKey = builder.Configuration["Jwt:Key"] 
+    ?? throw new InvalidOperationException("Chave JWT não configurada no appsettings.json");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] 
+    ?? throw new InvalidOperationException("Issuer JWT não configurado no appsettings.json");
+var jwtAudience = builder.Configuration["Jwt:Audience"] 
+    ?? throw new InvalidOperationException("Audience JWT não configurado no appsettings.json");
+
+var key = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -23,8 +31,14 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false
+        // ValidateIssuer: Garante que o token foi emitido por esta API específica
+        // Justificativa: Previne tokens de outras fontes sejam aceitos
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        // ValidateAudience: Garante que o token foi destinado para este cliente/aplicação
+        // Justificativa: Previne reutilização de tokens em sistemas não autorizados
+        ValidateAudience = true,
+        ValidAudience = jwtAudience
     };
 });
 

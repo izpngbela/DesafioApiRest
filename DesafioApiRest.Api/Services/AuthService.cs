@@ -22,7 +22,20 @@ public class AuthService : IAuthService
         if (loginDto.Username != "admin" || loginDto.Password != "123456")
             return null;
 
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "chave_super_secreta_para_teste_local_256bits");
+        var jwtKey = _configuration["Jwt:Key"] 
+            ?? throw new InvalidOperationException("Chave JWT não configurada no appsettings.json");
+        var issuer = _configuration["Jwt:Issuer"] 
+            ?? throw new InvalidOperationException("Issuer JWT não configurado no appsettings.json");
+        var audience = _configuration["Jwt:Audience"] 
+            ?? throw new InvalidOperationException("Audience JWT não configurado no appsettings.json");
+        
+        var expirationHoursString = _configuration["Jwt:ExpirationHours"] 
+            ?? throw new InvalidOperationException("ExpirationHours JWT não configurado no appsettings.json");
+        
+        if (!int.TryParse(expirationHoursString, out var expirationHours) || expirationHours <= 0)
+            throw new InvalidOperationException("ExpirationHours JWT deve ser um número inteiro positivo.");
+
+        var key = Encoding.ASCII.GetBytes(jwtKey);
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -30,7 +43,13 @@ public class AuthService : IAuthService
             {
                 new Claim(ClaimTypes.Name, loginDto.Username)
             }),
-            Expires = DateTime.UtcNow.AddHours(1),
+            Expires = DateTime.UtcNow.AddHours(expirationHours),
+            // Issuer: Identifica quem emitiu o token (esta API)
+            // Justificativa: Permite que serviços consumidores verifiquem a origem do token
+            Issuer = issuer,
+            // Audience: Identifica para quem o token foi emitido (clientes autorizados)
+            // Justificativa: Previne que tokens sejam usados em sistemas não autorizados
+            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
