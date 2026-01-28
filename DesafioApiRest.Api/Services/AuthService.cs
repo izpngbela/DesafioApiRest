@@ -1,8 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DesafioApiRest.Api.Configuration;
 using DesafioApiRest.Api.Dtos.Request;
 using DesafioApiRest.Api.Interfaces;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DesafioApiRest.Api.Services;
@@ -10,17 +12,47 @@ namespace DesafioApiRest.Api.Services;
 public class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthService> _logger;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly UserCredentialsOptions _userCredentials;
 
-    public AuthService(IConfiguration configuration)
+    public AuthService(
+        IConfiguration configuration, 
+        ILogger<AuthService> logger,
+        IPasswordHasher passwordHasher,
+        IOptions<UserCredentialsOptions> userCredentials)
     {
         _configuration = configuration;
+        _logger = logger;
+        _passwordHasher = passwordHasher;
+        _userCredentials = userCredentials.Value;
     }
 
     public string? GenerateToken(LoginRequestDto loginDto)
     {
-        // Validação fixa (conforme pedido no desafio)
-        if (loginDto.Username != "admin" || loginDto.Password != "123456")
+        _logger.LogInformation("Tentativa de login para o usuário: {Username}", loginDto.Username);
+        
+        // Busca o usuário na configuração
+        var user = _userCredentials.AllowedUsers
+            .FirstOrDefault(u => u.Username.Equals(loginDto.Username, StringComparison.OrdinalIgnoreCase));
+        
+        if (user == null)
+        {
+            _logger.LogWarning("Usuário não encontrado: {Username}", loginDto.Username);
             return null;
+        }
+        
+        _logger.LogInformation("Verificando senha para usuário: {Username}", loginDto.Username);
+        _logger.LogInformation("Hash armazenado: {Hash}", user.PasswordHash);
+        
+        bool senhaValida = _passwordHasher.VerifyPassword(loginDto.Password, user.PasswordHash);
+        _logger.LogInformation("Resultado da verificação de senha: {Result}", senhaValida);
+        
+        if (!senhaValida)
+        {
+            _logger.LogWarning("Senha incorreta para o usuário: {Username}", loginDto.Username);
+            return null;
+        }
 
         var jwtKey = _configuration["Jwt:Key"] 
             ?? throw new InvalidOperationException("Chave JWT não configurada no appsettings.json");
@@ -55,6 +87,10 @@ public class AuthService : IAuthService
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        var tokenString = tokenHandler.WriteToken(token);
+        
+        _logger.LogInformation("Token gerado com sucesso para o usuário: {Username}", loginDto.Username);
+        
+        return tokenString;
     }
 }

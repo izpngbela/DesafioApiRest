@@ -1,12 +1,17 @@
+using Asp.Versioning;
+using DesafioApiRest.Api.Dtos.Request;
+using DesafioApiRest.Api.Dtos.Response;
 using DesafioApiRest.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using DesafioApiRest.Api.Dtos.Request;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace DesafioApiRest.Api.Controllers;
 
+/// Controller responsável pelo gerenciamento seguro de arquivos
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 [Authorize] // Exige Token JWT
 public class FileController : ControllerBase
 {
@@ -17,57 +22,31 @@ public class FileController : ControllerBase
         _fileService = fileService;
     }
 
+    
     [HttpGet("read")]
+    [EnableRateLimiting("FilePolicy")]
+    [ProducesResponseType(typeof(FileReadResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ReadFile([FromQuery] string path, CancellationToken ct)
     {
-        try
-        {
-            var result = await _fileService.ReadFileAsync(path, ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Retorna 403 Forbidden se tentar sair da pasta
-            return Forbid();
-        }
-        catch (FileNotFoundException)
-        {
-            return NotFound(new { message = "Arquivo solicitado não existe." });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = "Erro interno no servidor." });
-        }
+        var result = await _fileService.ReadFileAsync(path, ct);
+        return Ok(result);
     }
 
     [HttpPost("write")]
+    [EnableRateLimiting("FilePolicy")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> WriteFile([FromBody] FileWriteRequestDto request, CancellationToken ct)
     {
-        try
-        {
-            await _fileService.WriteFileAsync(request.Path, request.Content, ct);
-            return Ok(new { message = "Arquivo gravado com sucesso.", path = request.Path });
-        }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Retorna 403 Forbidden se tentar sair da pasta
-            return Forbid();
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = "Erro interno no servidor." });
-        }
+        await _fileService.WriteFileAsync(request.Path, request.Content, ct);
+        return Ok(new { message = "Arquivo gravado com sucesso.", path = request.Path });
     }
 }
