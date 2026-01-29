@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioApiRest.Api", "Desaf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioApiRest.Tests", "DesafioApiRest.Tests\DesafioApiRest.Tests.csproj", "{168A26AE-45E6-4644-97C0-BCFE20CE3093}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioApiRest.Tests", "..\DesafioApiRest.Tests\DesafioApiRest.Tests.csproj", "{1C440A52-AD4A-454B-9620-0C548BC46AF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{168A26AE-45E6-4644-97C0-BCFE20CE3093}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{168A26AE-45E6-4644-97C0-BCFE20CE3093}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{168A26AE-45E6-4644-97C0-BCFE20CE3093}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C440A52-AD4A-454B-9620-0C548BC46AF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C440A52-AD4A-454B-9620-0C548BC46AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C440A52-AD4A-454B-9620-0C548BC46AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C440A52-AD4A-454B-9620-0C548BC46AF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
